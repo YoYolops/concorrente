@@ -1,0 +1,72 @@
+1 - Houve alguma alteração na ordem de execução das tarefas (ou sub-etapas) entre as execuções?
+Não houve alteração na ordem de execução das tarefas, o que era esperado devido a natureza sequencial
+do processamento. Houve, entretanto, diferença em relação aos tempos de execução, como pode ser visto nos logs da
+aplicação:
+
+============================================================
+[main] --- INÍCIO DO PROGRAMA SERIAL JAVA ---
+[main] INÍCIO: Configuração de Logs.
+[main] FIM: Configuração de Logs concluída.
+[main] INÍCIO: Verificação de Recursos.
+[main] Verificando Recurso 1 (Duração: 2168ms)...
+[main] Verificando Recurso 2 (Duração: 1529ms)...
+[main] Verificando Recurso 3 (Duração: 2983ms)...
+[main] Verificando Recurso 4 (Duração: 1704ms)...
+[main] Verificando Recurso 5 (Duração: 2454ms)...
+[main] FIM: Verificação concluída.
+[main] --- FIM DO PROGRAMA SERIAL JAVA ---
+
+real	0m15.007s
+user	0m0.209s
+sys	0m0.095s
+============================================================
+[main] --- INÍCIO DO PROGRAMA SERIAL JAVA ---
+[main] INÍCIO: Configuração de Logs.
+[main] FIM: Configuração de Logs concluída.
+[main] INÍCIO: Verificação de Recursos.
+[main] Verificando Recurso 1 (Duração: 2802ms)...
+[main] Verificando Recurso 2 (Duração: 2356ms)...
+[main] Verificando Recurso 3 (Duração: 1265ms)...
+[main] Verificando Recurso 4 (Duração: 2108ms)...
+[main] Verificando Recurso 5 (Duração: 1880ms)...
+[main] FIM: Verificação concluída.
+[main] --- FIM DO PROGRAMA SERIAL JAVA ---
+
+real	0m14.569s
+user	0m0.208s
+sys	0m0.087s
+============================================================
+[main] --- INÍCIO DO PROGRAMA SERIAL JAVA ---
+[main] INÍCIO: Configuração de Logs.
+[main] FIM: Configuração de Logs concluída.
+[main] INÍCIO: Verificação de Recursos.
+[main] Verificando Recurso 1 (Duração: 2501ms)...
+[main] Verificando Recurso 2 (Duração: 2249ms)...
+[main] Verificando Recurso 3 (Duração: 1720ms)...
+[main] Verificando Recurso 4 (Duração: 1523ms)...
+[main] Verificando Recurso 5 (Duração: 1646ms)...
+[main] FIM: Verificação concluída.
+[main] --- FIM DO PROGRAMA SERIAL JAVA ---
+
+real	0m13.808s
+user	0m0.222s
+sys	0m0.078s
+============================================================
+
+2 - Através de análise do código, descreva qual seria aproximadamente o tempo de execução 
+    mínimo e máximo esperado para este código?
+
+De acordo com o código dado, podemos observar que as duas funções são executadas sequencialmente:
+tLogs
+tCheck
+
+tLogs apresenta a seguinte linha: Thread.sleep(4000); // TEMPO FIXO: 4.0 segundos
+Assim, notamos que, ignorando outras instruções, essa função demoraria 4 segundos até sua conclusão.
+
+tCheck apresenta a seguinte linha: int sleepTime = 1000 + random.nextInt(2000); 
+Onde vemos que, ignorando demais instruções de log, ela tem uma duração de, no mínimo 1 segundo e no máximo 3 segundos.
+Essa instrução, entretanto, está dentro de um laço, executado 5 vezes. Com isso, para essa função, temos:
+Tempo mínimo = 5 * 1 = 5s & Tempo Máximo = 5 * 3 = 15s
+
+Somando os tempos de cada uma das funçãoes, individualmente, temos:
+Tempo mínimo total = 5 + 4 = 9s & Tempo Máximo Total = 15 + 4 = 19s

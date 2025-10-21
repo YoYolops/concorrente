@@ -1,0 +1,47 @@
+Q1 - Sim. o código serial executado é mais custoso que o código concorrente, demandando mais tempo, uma vez que executa
+o trabalho sequencialmente.
+
+Q2 - Observamos uma melhor semântica nos logs da aplicação. Melhorando sua legibilidade e manutenibilidade.
+=================================================================
+[main] --- INÍCIO DO PROGRAMA JAVA ---
+[Thread-0] INÍCIO: Configuração de Logs...
+[main] Inicialização de tarefas concorrentes solicitada.
+[Thread-1] INÍCIO: Verificação de Recursos.
+[main] --- FIM DO PROGRAMA JAVA (Main terminou) ---
+[Thread-1] Verificando Recurso 1 (Duração: 2711ms)...
+[Thread-1] Verificando Recurso 2 (Duração: 2108ms)...
+[Thread-0] FIM: Configuração de Logs concluída.
+[Thread-1] Verificando Recurso 3 (Duração: 2480ms)...
+[Thread-1] Verificando Recurso 4 (Duração: 2723ms)...
+[Thread-1] Verificando Recurso 5 (Duração: 2021ms)...
+[Thread-1] FIM: Verificação concluída.
+
+real	0m10.722s
+user	0m0.151s
+sys	0m0.071s
+=================================================================
+[main] --- INÍCIO DO PROGRAMA JAVA ---
+[Setup-Logs] INÍCIO: Configuração de Logs...
+[main] Inicialização de tarefas concorrentes solicitada.
+[main] --- FIM DO PROGRAMA JAVA (Main terminou) ---
+[Check-Recursos] INÍCIO: Verificação de Recursos.
+[Check-Recursos] Verificando Recurso 1 (Duração: 2940ms)...
+[Check-Recursos] Verificando Recurso 2 (Duração: 2028ms)...
+[Setup-Logs] FIM: Configuração de Logs concluída.
+[Check-Recursos] Verificando Recurso 3 (Duração: 1958ms)...
+[Check-Recursos] Verificando Recurso 4 (Duração: 1948ms)...
+[Check-Recursos] Verificando Recurso 5 (Duração: 2067ms)...
+[Check-Recursos] FIM: Verificação concluída.
+
+real	0m11.093s
+user	0m0.173s
+sys	0m0.073s
+=================================================================
+
+Q3 - A thread [main] se inicia junto com o programa. É a primeira thread a entrar em cena. Logo em seguida, ela
+inicializa as threads "subordinadas" e se encerra sem esperar a conclusão de suas "subordinadas".
+Algumas vezes, as threads "subordinadas" conseguem logar antes da finalização da main, algumas vezes não, como
+pode ser visto nos logs acima.
+
+Q4 - Sim, o fluxo de execução foi alterado. Agora, a thread main espera a conclusão das demais antes de finalizar.
+
