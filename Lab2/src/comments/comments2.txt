@@ -1,0 +1,16 @@
+Sim, espaço na memória foi compartilhando entre as mútiplas threads.
+
+No caso do código em python, a classe 'Classes' foi compartilhada entre as
+diferentes threads.
+
+Existe a possibilidade de condições de corrida. Atributos da classe Classes são
+acessados e alterados por várias threads rodando concorrentemente. Dessa forma, é
+possível que diferentes threads acessem/alterem dados simultaneamente, levando a
+inconsistências.
+
+Existe um problema que pode, e foi, resolvido com semáforos.
+O cálculo e armazenamento da maior nota de cada classe é feito por threads
+concorrentes, que podem levar a perda/inconsistência do dado se o acesso ao mesmo não
+for controlado.
+É aí que o semáforo entra, ele permite apenas um acesso por vez na região crítica,
+ou seja, o trecho responsável por guardar o valor recentemente calculado.

@@ -1,4 +1,4 @@
-Com base nas instruções fornecidas, apresentarei a solução do exercício em um formato de arquivo README.md, detalhando as implementações em Python e C para a solução concorrente, incluindo a evolução solicitada (identificação da nota mais alta) e a análise dos questionamentos.🚀 Laboratório de Programação Concorrente - Lab2: Warmup AgainEste README contém a resolução prática do Laboratório 2, que foca no domínio da sintaxe básica para criar, nomear e iniciar Threads em Python e C, e na aplicação de sincronização simples para coordenação de tarefas concorrentes.📝 Cenário Básico: O Processo de Correção de Notas de ProvasO cenário simula o processo de correção de provas por múltiplos professores (turmas/threads) de uma mesma disciplina. O objetivo é permitir que a correção das provas e o registro das notas (tarefas independentes) sejam feitos de forma concorrente, mas que a divulgação final das notas (tarefa da thread principal) só ocorra após todas as threads de correção finalizarem suas tarefas.🐍 Implementação em PythonA solução em Python utiliza a biblioteca padrão threading para concorrência. O código é complementado para criar e iniciar uma thread para cada turma/professor e, em seguida, a thread principal usa o método join() para esperar pela finalização de todas elas antes de divulgar as notas.⚙️ Modificações no Código Concorrente (Python)Assumindo que as funções de correção (corrigir_turma ou similar) e as variáveis de configuração já existem no código base, as alterações na função principal (provavelmente main ou o ponto de entrada) envolvem:Criar uma lista para armazenar os objetos Thread.Criar um objeto Thread para cada turma, passando a função de correção como target e os argumentos necessários.Iniciar cada thread com o método start().Usar join() em cada thread criada para bloquear a execução da thread principal até que a thread filha termine.Exemplo de Estrutura de Código Python (Ponto de entrada):Pythonimport threading
+Com base nas instruções fornecidas, apresentarei a solução do exercício em um formato de arquivo README.md, detalhando as implementações em Python e C para a solução concorrente, incluindo a evolução solicitada (identificação da nota mais alta) e a análise dos questionamentos. Laboratório de Programação Concorrente - Lab2: Warmup AgainEste README contém a resolução prática do Laboratório 2, que foca no domínio da sintaxe básica para criar, nomear e iniciar Threads em Python e C, e na aplicação de sincronização simples para coordenação de tarefas concorrentes.Cenário Básico: O Processo de Correção de Notas de ProvasO cenário simula o processo de correção de provas por múltiplos professores (turmas/threads) de uma mesma disciplina. O objetivo é permitir que a correção das provas e o registro das notas (tarefas independentes) sejam feitos de forma concorrente, mas que a divulgação final das notas (tarefa da thread principal) só ocorra após todas as threads de correção finalizarem suas tarefas. Implementação em PythonA solução em Python utiliza a biblioteca padrão threading para concorrência. O código é complementado para criar e iniciar uma thread para cada turma/professor e, em seguida, a thread principal usa o método join() para esperar pela finalização de todas elas antes de divulgar as notas. Modificações no Código Concorrente (Python)Assumindo que as funções de correção (corrigir_turma ou similar) e as variáveis de configuração já existem no código base, as alterações na função principal (provavelmente main ou o ponto de entrada) envolvem:Criar uma lista para armazenar os objetos Thread.Criar um objeto Thread para cada turma, passando a função de correção como target e os argumentos necessários.Iniciar cada thread com o método start().Usar join() em cada thread criada para bloquear a execução da thread principal até que a thread filha termine.Exemplo de Estrutura de Código Python (Ponto de entrada):Pythonimport threading
 # Assumindo a existência da função que a thread executará:
 # def corrigir_turma(id_turma, alunos_por_turma, notas_registradas):
 #     ... lógica de correção e registro de notas ...
@@ -9,7 +9,7 @@ def main_concorrente(qtd_turmas, qtd_alunos_por_turma):
     
     # ... código de inicialização de dados (ex: notas_registradas) ...
 
-    print("📢 Iniciando o processo de correção das provas de todas as turmas.")
+    print("Iniciando o processo de correção das provas de todas as turmas.")
     
     # 1. Criação e Início das Threads
     for i in range(qtd_turmas):
@@ -22,11 +22,11 @@ def main_concorrente(qtd_turmas, qtd_alunos_por_turma):
         t.start() # 2. Inicia a execução da thread
     
     # 3. Sincronização: Esperar que todas as threads filhas terminem
-    print("\n⏳ Aguardando a finalização da correção de todas as turmas...")
+    print("\n Aguardando a finalização da correção de todas as turmas...")
     for t in threads:
         t.join() # Bloqueia a thread principal até que 't' termine
 
-    print("\n✅ Todas as turmas foram corrigidas.")
+    print("\n Todas as turmas foram corrigidas.")
     # ... Lógica de divulgação das notas (parte final do processo) ...
     divulgar_notas(notas_registradas_compartilhadas)
 📈 Evolução da Solução em Python (Nota Mais Alta)Para identificar a nota mais alta por turma, a função executada pela thread (corrigir_turma) deve ser modificada para:Inicializar uma variável local para a nota mais alta daquela turma.Durante o loop de correção dos alunos, comparar a nota do aluno atual com a nota mais alta da turma, atualizando-a se necessário.Registrar a nota mais alta da turma em uma estrutura de dados compartilhada (ex: um dicionário ou lista na thread principal) após finalizar a correção de todos os alunos daquela turma.Exemplo de Estrutura da Função corrigir_turma com a Evolução:Pythondef corrigir_turma(id_turma, alunos_por_turma, notas_registradas, notas_altas_compartilhadas):
@@ -46,7 +46,7 @@ def main_concorrente(qtd_turmas, qtd_alunos_por_turma):
     # Deve ser feito após a correção de todos os alunos da turma
     notas_altas_compartilhadas[id_turma] = nota_mais_alta_turma
     # ...
-O array ou dicionário notas_altas_compartilhadas seria criado na thread principal e passado como argumento para cada thread filha. A thread principal exibirá esse resultado ao final, após o join() de todas as filhas.🏗️ Implementação em CA solução em C utiliza a biblioteca POSIX Threads (pthreads), que é o padrão para concorrência em sistemas Unix-like.⚙️ Modificações no Código Concorrente (C)O código em C deve ser complementado para:Incluir o cabeçalho <pthread.h>.Declarar um array de variáveis do tipo pthread_t para armazenar os identificadores das threads.Usar pthread_create() para criar e iniciar cada thread, passando o ponteiro para a função de correção como argumento.Usar pthread_join() para bloquear a thread principal e esperar que todas as threads filhas terminem sua execução.Exemplo de Estrutura de Código C (Ponto de entrada - main):C#include <stdio.h>
+O array ou dicionário notas_altas_compartilhadas seria criado na thread principal e passado como argumento para cada thread filha. A thread principal exibirá esse resultado ao final, após o join() de todas as filhas. Implementação em CA solução em C utiliza a biblioteca POSIX Threads (pthreads), que é o padrão para concorrência em sistemas Unix-like. Modificações no Código Concorrente (C)O código em C deve ser complementado para:Incluir o cabeçalho <pthread.h>.Declarar um array de variáveis do tipo pthread_t para armazenar os identificadores das threads.Usar pthread_create() para criar e iniciar cada thread, passando o ponteiro para a função de correção como argumento.Usar pthread_join() para bloquear a thread principal e esperar que todas as threads filhas terminem sua execução.Exemplo de Estrutura de Código C (Ponto de entrada - main):C#include <stdio.h>
 #include <pthread.h>
 // ... outros includes e a função de correção: void *corrigir_turma(void *arg);
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     pthread_t threads[qtd_turmas];
     // ... Estruturas de dados e argumentos para as threads ...
     
-    printf("📢 Iniciando o processo de correção das provas de todas as turmas.\n");
+    printf("Iniciando o processo de correção das provas de todas as turmas.\n");
     
     // 1. Criação e Início das Threads
     for (int i = 0; i < qtd_turmas; i++) {
@@ -72,19 +72,19 @@ int main(int argc, char *argv[]) {
     }
     
     // 2. Sincronização: Esperar que todas as threads filhas terminem
-    printf("\n⏳ Aguardando a finalização da correção de todas as turmas...\n");
+    printf("\nAguardando a finalização da correção de todas as turmas...\n");
     for (int i = 0; i < qtd_turmas; i++) {
         // Bloqueia a thread principal até que a thread 'threads[i]' termine.
         pthread_join(threads[i], NULL); 
     }
     
-    printf("\n✅ Todas as turmas foram corrigidas.\n");
+    printf("\nTodas as turmas foram corrigidas.\n");
     // ... Lógica de divulgação das notas (parte final do processo) ...
     // ... (Ex: exibir a lista de notas registradas) ...
 
     return 0;
 }
-📈 Evolução da Solução em C (Nota Mais Alta)Similarmente ao Python, em C a estrutura de dados para o argumento da thread (arg_turma_i no exemplo acima) deve ser complementada para:Conter um campo para armazenar a nota mais alta daquela turma.A função executada pela thread (corrigir_turma) deve calcular a nota mais alta localmente.Antes de finalizar, a thread deve armazenar esse valor no campo da estrutura de dados que foi passada (que é acessível pela thread principal após o pthread_join).Exemplo de Estrutura de Argumento e Função de Correção em C:Ctypedef struct {
+ Evolução da Solução em C (Nota Mais Alta)Similarmente ao Python, em C a estrutura de dados para o argumento da thread (arg_turma_i no exemplo acima) deve ser complementada para:Conter um campo para armazenar a nota mais alta daquela turma.A função executada pela thread (corrigir_turma) deve calcular a nota mais alta localmente.Antes de finalizar, a thread deve armazenar esse valor no campo da estrutura de dados que foi passada (que é acessível pela thread principal após o pthread_join).Exemplo de Estrutura de Argumento e Função de Correção em C:Ctypedef struct {
     int id_turma;
     int qtd_alunos;
     float nota_mais_alta; // Campo para o resultado

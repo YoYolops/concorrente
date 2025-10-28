@@ -1,0 +1,1 @@
+Em ambas as soluções Seriais (C e Python), a ordem de execução é exatamente a mesma
