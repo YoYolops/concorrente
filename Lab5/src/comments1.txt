@@ -1,0 +1,47 @@
+CONFORME PEDIDO PELO PROFESSOR GIOVANNI:
+Explique por que, a depender da sua solução, o programa fica congelado após todos os produtores terem rodado:
+
+Isso acontece por que consumidores rodam dentro de um laço while(True)!
+Do jeito que implementamos, temos uma dinâmica em que a possibilidade de um consumidor ou produtor rodar está inti-
+mamente relacionada com o estado do Buffer. 
+
+Ao iniciar, o buffer tem 50 posições vazias, ou seja, existem 50 'tickets' para que produtores rodem e preencham
+cada um dos 50 espaços.
+Enquanto produtores não rodarem, TODOS os consumidores ficam parados esperando sinalização de que já há algo no buf-
+fer para ser consumido.
+
+Resumindo:
+Cada produtor que roda, autoriza a passagem de um consumidor. Cada consumidor que retira um elemento, autoriza a 
+passagem de um produtor, e assim eles se retroalimentam.
+
+Problema: Produtores, uma vez que cumprem seu trabalho, encerram sua execução, mas consumidores não!!!
+Consumidores ficam sempre esperando (devido ao laço while(True)), então o programa sempre acaba com os consumidores
+esperando pela sinalização de consumidores que jamais virá.
+
+
+EXPERIMENTAÇÔES E DISCUSSÔES:
+
+GARGALO:
+    Caso tenhamos uma situação em que o volume total de produções seja o gargalo da aplicação, a adição de
+    mais threads consumidoras somente gera overhead, uma vez que elas precisam de produtores e ficam travados
+    a sua espera.
+
+    O contrário também é verdade, caso threads consumidoras sejam o gargalo, a adição de mais produtores gera
+    dados que não podem ser processados, amontoando produtores que esperam uns pelos outros.
+
+O TAMANHO DO BUFFER:
+    Conforme instruído no pdf de descrição do Lab5, o buffer tem tamanho limite de 50.
+    Nesse cenário, não é muito vantajoso ter mais de 50 threads de um determinado tipo (produtora ou consumidora).
+    Isso por que, de acordo com a implementação descrita nos primeiros parágrafos, mesmo em um cenário ideal com
+    um núcleo de processamento dedicado a cada thread, nunca mais de 50 rodariam em paralelo pois são limitadas
+    por um semáforo. Considerando o overhead de gerenciamento de threads, não parece valer a pena;
+
+O IDEAL:
+    É ter um throuput equilibrado, ou seja:
+    Se tenho 2 produtores, cada um produzindo 10 items, cada item demorando 10ms, temos vazão máxima de 1 item a cada 5ms
+    Assim sendo, devemos encontrar uma quantidade de consumidores que consigam dar conta desse volume. Seriam necessários:
+    2 consumidores que processam 1 item a cada 10ms
+    ou
+    1 consumidor que processa 2 items a cada 10 mas
+    etc
+    
