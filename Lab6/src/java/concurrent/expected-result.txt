@@ -1,0 +1,49 @@
+>> CONTROLE DE ACESSO POR SEMÁFOROS:
+
+Agora, implementamos um semáforo para exclusão mútua, que previne que mais de uma thread
+acesse quaisquer váriaveis pertencentes a regiões críticas. Previnimos assim inconsistência
+de dados do sistema.
+
+Com essa nova abordagem a expectativa é que, se somarmos (compras + falha + nada) teremos um valor igual
+ao total de threads executadas, que no exemplo que rodamos, foi 5000:
+
+aluno001@provaFull:~/fpc/2025.2/Lab6/src/java/concurrent$ bash run.sh 5000
+========= Estatisticas do Sistema SEMAPHORE =========
+Total de Acessos: 5000
+Total de Compras: 1675
+Total de Falhas: 1672
+Total de acessos sem compras ou falhas: 1653
+Usuarios Online: 0
+=======================================================
+
+real	0m1.680s
+user	0m1.050s
+sys	0m1.049s
+
+De fato, temos: 1675+1672+1653=5000
+
+Além disso, vemos que a quantidade Usuarios Online: 0, é zero. Ou seja, todas as
+threads tiveram oportunidade de rodar inteiramente, com dados consistentes.
+
+
+
+>> CONTROLE DE ACESSO POR VARIÁVEIS ATÔMICAS:
+
+Ao implementar a solução com varíaveis atômicas, obtivemos um resultado análogo ao
+da implementação usando semáforos:
+
+aluno001@provaFull:~/fpc/2025.2/Lab6/src/java/concurrent$ bash run.sh 5000
+========= Estatisticas do Sistema ATOMIC =========
+Total de Acessos: 5000
+Total de Compras: 1691
+Total de Falhas: 1663
+Total de acessos sem compras ou falhas: 1646
+Usuarios Online: 0
+=======================================================
+
+real	0m1.508s
+user	0m0.922s
+sys	0m0.909s
+
+Vemos a soma de (compras + falha + nada) dentro das expectativas já mencionadas
+anteriormente, totalizando 5000. E quantidade usuarios online igual a zero.

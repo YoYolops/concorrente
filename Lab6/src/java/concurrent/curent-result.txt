@@ -1,0 +1,32 @@
+Com o código dado, temos 5000 threads que executam uma, e somente uma, das seguintes ações:
+- Compra
+- Falha
+- Nada
+
+A expectativa então é que, ao somarmos (compras + falha + nada) teremos um valor igual
+ao total de threads executadas, que no exemplo que rodamos, foi 5000:
+
+
+aluno001@provaFull:~/fpc/2025.2/Lab6/src/java/concurrent$ bash run.sh 5000
+========= Estatisticas do Sistema =========
+Total de Acessos: 5000
+Total de Compras: 1701
+Total de Falhas: 1602
+Total de acessos sem compras ou falhas: 1695
+Usuarios Online: 8
+=======================================================
+
+real	0m1.448s
+user	0m0.881s
+sys	0m0.886s
+
+Entretando, temos que: 1701 + 1602 + 1695 = 4998 (2 threads faltando?)
+
+Além disso, notamos que "Usuarios Online: 8" Indica um valor diferente de zero,
+que era a expectativa, uma vez que todas as threads executam a funcao de decremento
+stats.logout(), e a main espera, com users[i].join(), que todas elas finalizem sua
+execução.
+
+Ou seja, ao concorrerem pelo acesso a essas variáveis e sua respectiva alteração 
+(incremento ou decremento), acontecem problemas de controle de acesso e, por consequência,
+inconsistência dos dados apontados.
