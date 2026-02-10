@@ -5,17 +5,20 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 )
 
 type Server struct {
-	hashMap    map[int][]string
-	clientData map[string][]int
+	hashMap     map[int][]string
+	clientData  map[string][]int
+	serverMutex sync.RWMutex
 }
 
 func NewServer() *Server {
 	return &Server{
-		hashMap:    make(map[int][]string),
-		clientData: make(map[string][]int),
+		hashMap:     make(map[int][]string),
+		clientData:  make(map[string][]int),
+		serverMutex: sync.RWMutex{},
 	}
 }
 
@@ -59,6 +62,9 @@ func (s *Server) handleStoreRequest(conn net.Conn, decoder *gob.Decoder) {
 		return
 	}
 
+	s.serverMutex.Lock()
+    defer s.serverMutex.Unlock()
+
 	clientIP := conn.RemoteAddr().String()
 	for _, hash := range clientHashes {
 		if _, exists := s.hashMap[hash]; !exists {
@@ -78,6 +84,9 @@ func (s *Server) handleCreateRequest(conn net.Conn, decoder *gob.Decoder) {
 		return
 	}
 
+	s.serverMutex.Lock()
+    defer s.serverMutex.Unlock()
+
 	clientIP := conn.RemoteAddr().String()
 
 	if _, exists := s.hashMap[fileHash]; !exists {
@@ -95,6 +104,9 @@ func (s *Server) handleDeleteRequest(conn net.Conn, decoder *gob.Decoder) {
 		log.Println("Error decoding file hash:", err)
 		return
 	}
+
+	s.serverMutex.Lock()
+    defer s.serverMutex.Unlock()
 
 	clientIP := conn.RemoteAddr().String()
 
@@ -122,13 +134,18 @@ func (s *Server) handleQueryRequest(conn net.Conn, decoder *gob.Decoder) {
 		return
 	}
 
-	ips := s.hashMap[hash]
+	s.serverMutex.RLock()
+    ips := s.hashMap[hash]
+    s.serverMutex.RUnlock()
 
 	encoder := gob.NewEncoder(conn)
 	encoder.Encode(ips)
 }
 
 func (s *Server) cleanupClientData(clientIP string) {
+	s.serverMutex.Lock()
+    defer s.serverMutex.Unlock()
+
 	hashes, exists := s.clientData[clientIP]
 	if !exists {
 		return

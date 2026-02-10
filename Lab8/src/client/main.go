@@ -11,17 +11,21 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
 	"github.com/fsnotify/fsnotify"
+	"sync"
 )
 
 type Client struct {
-	hashMap map[int]string
+    hashMap         map[int]string
+    dataMutex       sync.RWMutex
+    connectionMutex sync.Mutex
 }
 
 func NewClient() *Client {
 	return &Client{
-		hashMap: make(map[int]string),
+		hashMap: 		 make(map[int]string),
+		dataMutex:       sync.RWMutex{},
+    	connectionMutex: sync.Mutex{}
 	}
 }
 
@@ -105,6 +109,9 @@ func storeHashes(conn net.Conn, hashes map[string][]int) {
 }
 
 func updateServer(conn net.Conn, action string, filePath string, client *Client) {
+	client.connectionMutex.Lock()
+    defer client.connectionMutex.Unlock()
+
 	encoder := gob.NewEncoder(conn)
 
 	if err := encoder.Encode(action); err != nil {
@@ -124,7 +131,9 @@ func updateServer(conn net.Conn, action string, filePath string, client *Client)
 	}
 
 	// SEM mutex (intencional para os alunos implementarem controle depois)
-	client.hashMap[fileHash] = filePath
+	client.dataMutex.Lock()
+    client.hashMap[fileHash] = filePath
+    client.dataMutex.Unlock()
 
 	fmt.Printf("Server updated: %s - %s\n", action, filePath)
 }
@@ -194,7 +203,9 @@ func (s *Client) handleDownloadRequest(conn net.Conn, decoder *gob.Decoder) {
 	}
 
 	// SEM mutex (intencional)
+	s.dataMutex.RLock()
 	filePath := s.hashMap[fileHash]
+	s.dataMutex.RUnlock()
 
 	file, err := os.Open("./" + filePath)
 	if err != nil {

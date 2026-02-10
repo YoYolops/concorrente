@@ -1,0 +1,40 @@
+1 - Resolvendo condições de corrida sobre dados compartilhados.
+
+~ SERVER
+Vemos que no server/main.go, temos um struct compartilhado para toda a aplicação:
+
+func NewServer() *Server {
+	return &Server{
+		hashMap:    make(map[int][]string),
+		clientData: make(map[string][]int),
+		serverMuter sync.RWMutex, // RW permite varios leitores simultâneos, mas bloqueia todo mundo ao escrever
+	}
+}
+
+Depois disso, optamos por executar a função de lock dentro das próprias funções handlers, ao invés de chamá-las na função handleConnection.
+Com isso, temos uma melhoria de performance, pois podemos executar alguns comandos não associados aos dados compartilhados, diminuindo o tempo de trava do dado. Ex.:
+
+func (s *Server) handleCreateRequest(conn net.Conn, decoder *gob.Decoder) {
+	var fileHash int
+	if err := decoder.Decode(&fileHash); err != nil {   // Conseguimos executar o decode sem travar o struct compartilhado
+		log.Println("Error decoding file hash:", err)
+		return
+	}
+
+	s.serverMutex.Lock()
+    defer s.serverMutex.Unlock()
+
+	clientIP := conn.RemoteAddr().String()
+
+	if _, exists := s.hashMap[fileHash]; !exists {
+		s.hashMap[fileHash] = []string{}
+	}
+	s.hashMap[fileHash] = append(s.hashMap[fileHash], clientIP)
+	s.clientData[clientIP] = append(s.clientData[clientIP], fileHash)
+
+	fmt.Printf("File created by %s: Hash %d\n", clientIP, fileHash)
+}
+
+~ CLIENT
+
+Fizemos o mesmo. Adicionamos mutex RW de dados para bloquear o acesso quando escritas estiverem ocorrendo, mas permitindo vários leituras simultâneas
