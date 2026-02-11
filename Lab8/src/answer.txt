@@ -49,4 +49,21 @@ type Client struct {
 	connectionMutex sync.Mutex   // Previne corrupção de mensagens enviadas
 }
 
-MELHORIA DE PERFORMANCE
+~ MELHORIA DE PERFORMANCE:
+
+Notamos o comentário do professor:
+
+// Versão SEM concorrência: sem goroutines e sem channels.
+func generateFilesHashMap(diretorio string) map[string][]int 
+
+por isso focamos nossa melhoria de performance ali.
+Adicionamos concorrência para o cálculo dos hashes dos arquivos em um determinado
+client.
+
+Ao invés de calcular cada hash sequencialmente, spawnamos uma goroutine (heavyDutyWorker) para cada arquivo
+e coletamos os resultados dos hashes em um channel específco.
+
+A medida que recebemos esses hashes, vamos os acumulando e devolvemos o mapa de hashes com mais agilidade
+
+Para tanto, encapsulamos a execução da função sum (o trabalho pesado) e a lógica de comunicação
+pelo canal em uma função, 

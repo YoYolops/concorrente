@@ -22,6 +22,12 @@ type Client struct {
 	connectionMutex sync.Mutex
 }
 
+type HashChannelMessage struct {
+    filePath string
+    hash     int
+    err      error
+}
+
 func NewClient() *Client {
 	return &Client{
 		hashMap:         make(map[int]string),
@@ -68,27 +74,59 @@ func listarArquivos(diretorio string) []string {
 	return result
 }
 
-// Versão SEM concorrência: sem goroutines e sem channels.
+// Versão SEM concorrência: sem goroutines e sem channels. (ADICIONAMOS A CONCORRÊNCIA)
+func heavyDutyWorker(path string, sendChannel chan<- HashChannelMessage) {
+	// trabalho pesado:
+    val, err := sum(path)
+    sendChannel <- HashChannelMessage{
+        filePath: path,
+        hash:     val,
+        err:      err,
+    }
+}
+
 func generateFilesHashMap(diretorio string) map[string][]int {
-	if _, err := os.Stat(diretorio); os.IsNotExist(err) {
-		log.Fatalf("O diretório %s não existe", diretorio)
-	}
-	files := listarArquivos(diretorio)
+    if _, err := os.Stat(diretorio); os.IsNotExist(err) {
+        log.Fatalf("O diretório %s não existe", diretorio)
+    }
 
-	hashs := make(map[string][]int)
-	for _, name := range files {
-		fp := filepath.Join(diretorio, name)
-		fileSum, err := sum(fp)
-		if err != nil {
-			fileSum = 0
-		}
-		hashs[fp] = append(hashs[fp], fileSum)
-	}
+    files := listarArquivos(diretorio)
+    totalFiles := len(files)
 
-	return hashs
+    messageChannel := make(chan HashChannelMessage, totalFiles)
+    // uma função concorrente para cada arquivo que encontrei na pasta alvo
+    for _, name := range files {
+        fp := filepath.Join(diretorio, name)
+        go heavyDutyWorker(fp, messageChannel)
+    }
+
+	hashs := make(map[string][]int, totalFiles)
+    for i := 0; i < totalFiles; i++ {
+        result := <-messageChannel
+        if result.err != nil {
+            log.Printf("Erro ao processar %s: %v", result.filePath, result.err)
+            result.hash = 0
+        }
+
+        hashs[result.filePath] = append(hashs[result.filePath], result.hash)
+    }
+
+    // Como eu (geberateFilesHashMap) sei exatamente a quantidade de mensagens que receberei,
+	// eu mesmo fecho o canal quando receber todas. Não preciso que as goroutines
+	// façam isso para mim
+    close(messageChannel)
+    return hashs
 }
 
 func storeHashes(conn net.Conn, hashes map[string][]int) {
+	client.dataMutex.Lock()
+    for path, hashList := range hashes {
+        for _, h := range hashList {
+            client.hashMap[h] = path
+        }
+    }
+    client.dataMutex.Unlock()
+
 	encoder := gob.NewEncoder(conn)
 
 	if err := encoder.Encode("store"); err != nil {
@@ -132,6 +170,7 @@ func updateServer(conn net.Conn, action string, filePath string, client *Client)
 	}
 
 	// SEM mutex (intencional para os alunos implementarem controle depois)
+	// Implementamos! :)
 	client.dataMutex.Lock()
 	client.hashMap[fileHash] = filePath
 	client.dataMutex.Unlock()
@@ -208,6 +247,7 @@ func (s *Client) handleDownloadRequest(conn net.Conn, decoder *gob.Decoder) {
 	}
 
 	// SEM mutex (intencional)
+	// implementamos :)
 	s.dataMutex.RLock()
 	filePath := s.hashMap[fileHash]
 	s.dataMutex.RUnlock()
@@ -269,7 +309,7 @@ func startClientServer(server *Client) {
 	}
 	defer ln.Close()
 
-	fmt.Println("Server is listening on port 8080...")
+	fmt.Println("Server is listening on port 8089...")
 
 	for {
 		conn, err := ln.Accept()
@@ -318,7 +358,7 @@ func main() {
 	serverIp, _ := reader.ReadString('\n')
 	serverIp = strings.TrimSpace(serverIp)
 
-	conn, err := net.Dial("tcp", serverIp+":8080")
+	conn, err := net.Dial("tcp", serverIp+":8089")
 	if err != nil {
 		log.Fatal(err)
 	}

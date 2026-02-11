@@ -192,13 +192,13 @@ func removeFromSlice(slice []int, val int) []int {
 
 func main() {
 	server := NewServer()
-	ln, err := net.Listen("tcp", ":8080")
+	ln, err := net.Listen("tcp", ":8089")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer ln.Close()
 
-	fmt.Println("Server is listening on port 8080...")
+	fmt.Println("Server is listening on port 8089...")
 
 	for {
 		conn, err := ln.Accept()
