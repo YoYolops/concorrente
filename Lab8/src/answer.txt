@@ -49,3 +49,4 @@ type Client struct {
 	connectionMutex sync.Mutex   // Previne corrupção de mensagens enviadas
 }
 
+MELHORIA DE PERFORMANCE
