@@ -11,21 +11,22 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"github.com/fsnotify/fsnotify"
 	"sync"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 type Client struct {
-    hashMap         map[int]string
-    dataMutex       sync.RWMutex
-    connectionMutex sync.Mutex
+	hashMap         map[int]string
+	dataMutex       sync.RWMutex
+	connectionMutex sync.Mutex
 }
 
 func NewClient() *Client {
 	return &Client{
-		hashMap: 		 make(map[int]string),
+		hashMap:         make(map[int]string),
 		dataMutex:       sync.RWMutex{},
-    	connectionMutex: sync.Mutex{}
+		connectionMutex: sync.Mutex{},
 	}
 }
 
@@ -110,7 +111,7 @@ func storeHashes(conn net.Conn, hashes map[string][]int) {
 
 func updateServer(conn net.Conn, action string, filePath string, client *Client) {
 	client.connectionMutex.Lock()
-    defer client.connectionMutex.Unlock()
+	defer client.connectionMutex.Unlock()
 
 	encoder := gob.NewEncoder(conn)
 
@@ -132,8 +133,8 @@ func updateServer(conn net.Conn, action string, filePath string, client *Client)
 
 	// SEM mutex (intencional para os alunos implementarem controle depois)
 	client.dataMutex.Lock()
-    client.hashMap[fileHash] = filePath
-    client.dataMutex.Unlock()
+	client.hashMap[fileHash] = filePath
+	client.dataMutex.Unlock()
 
 	fmt.Printf("Server updated: %s - %s\n", action, filePath)
 }
@@ -173,7 +174,11 @@ func monitorDirectory(conn net.Conn, directory string, server *Client) {
 	}
 }
 
-func queryHash(conn net.Conn, hash int) ([]string, error) {
+// Alteramos para receber client
+func queryHash(conn net.Conn, hash int, client *Client) ([]string, error) {
+	client.connectionMutex.Lock()
+	defer client.connectionMutex.Unlock()
+
 	encoder := gob.NewEncoder(conn)
 	if err := encoder.Encode("query"); err != nil {
 		log.Println("Error encoding request type:", err)
@@ -353,7 +358,7 @@ func main() {
 			if err != nil {
 				log.Fatal("Invalid hash value:", err)
 			}
-			queryHash(conn, hash)
+			queryHash(conn, hash, server)
 
 		case 2:
 			fmt.Print("Enter hash to query: ")
@@ -368,7 +373,7 @@ func main() {
 			filePath, _ := reader.ReadString('\n')
 			filePath = strings.TrimSpace(filePath)
 
-			ips, err := queryHash(conn, hash)
+			ips, err := queryHash(conn, hash, server)
 			if err != nil {
 				log.Fatal("Error while searching for IPs for the provided hash", err)
 				continue

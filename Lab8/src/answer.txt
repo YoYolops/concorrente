@@ -38,3 +38,14 @@ func (s *Server) handleCreateRequest(conn net.Conn, decoder *gob.Decoder) {
 ~ CLIENT
 
 Fizemos o mesmo. Adicionamos mutex RW de dados para bloquear o acesso quando escritas estiverem ocorrendo, mas permitindo vários leituras simultâneas
+Adicionamos também um mutex para connection.
+O client compartilha a conexão entre suas funções, e múltiplas funções podem tentar enviar
+mensagens ao mesmo tempo. Por isso esse mutex é necessário. Ele previne que um cliente corrompa
+as próprias mensagens caso duas funções tentem enviar dados ao servidor simultâneamente
+
+type Client struct {
+	hashMap         map[int]string
+	dataMutex       sync.RWMutex // Cuida dos dados compartilhados
+	connectionMutex sync.Mutex   // Previne corrupção de mensagens enviadas
+}
+
