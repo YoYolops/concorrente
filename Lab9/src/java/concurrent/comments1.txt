@@ -1,0 +1,9 @@
+Foi pedido para escolher uma e justificar a escolha entre:
+
+○ Executors.newSingleThreadExecutor()
+○ Executors.newCachedThreadPool()
+○ Executors.newFixedThreadPool(x)
+
+Eu optei por usar Executors.newFixedThreadPool(10), pois 10 arquivos de log
+foram criados para que o programa contasse. Então pensei em uma thread por arquivos
+de forma que as threads não competiriam entre si
