@@ -1,0 +1,32 @@
+Nesta etapa o produtor gera apenas 10.000 números aleatórios e então
+encerra sua execução. O consumidor tenta remover itens da fila usando
+um tempo máximo de espera de 600 milissegundos.
+
+Se não houver item disponível nesse tempo, o método poll retorna null
+e o consumidor encerra sua execução.
+
+Quando o tempo de produção é menor que o de consumo, o buffer tende a
+encher, pois os itens são produzidos mais rapidamente do que são
+consumidos.
+
+Quando o tempo de consumo é menor que o de produção, o buffer fica
+vazio com frequência e, após o produtor terminar de gerar os 10.000
+itens, o consumidor eventualmente atinge o timeout e finaliza.
+
+>>> UM DETALHE IMPORTANTE: <<<
+
+Uso: ./run.sh <num_producers> <producing_time> <num_consumers> <consuming_time>
+
+Caso o <producing_time> seja configurado para um valor próximo ou
+maior que os 600ms que o consumidor espera, o consumidor pode encerrar
+sua execução sem nunca consumir um item sequer. Nesse cenário, o produtor
+rodaria até inserir todos os seus 10_000 items e encerraria o programa com o 
+buffer cheio.
+
+Ex.: com <producing_time> próximo de 600
+bash ./run.sh 1 550 1 150
+Consumer 1 tried to consume item but did not find any after 600ms. EXITING
+Producer 1 produced item 63
+Inserted: 63 | Buffer size: 1
+Producer 1 produced item 89
+... A fila vai enchendo até bater 10_000

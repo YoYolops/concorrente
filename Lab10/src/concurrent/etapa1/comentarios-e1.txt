@@ -1,0 +1,12 @@
+Quando o tempo de produção é menor que o de consumo, os produtores geram
+itens mais rapidamente e o buffer tende a encher. Quando a capacidade
+máxima é atingida, a operação put() da ArrayBlockingQueue bloqueia o
+produtor até que um consumidor remova um item.
+
+Quando o tempo de consumo é menor que o de produção, os consumidores
+tentam remover itens mais rapidamente do que os produtores produzem.
+Assim, o buffer frequentemente fica vazio e a operação take() bloqueia
+o consumidor até que um novo item seja inserido.
+
+A BlockingQueue resolve automaticamente a sincronização entre threads,
+evitando problemas de concorrência.
